@@ -1,70 +1,153 @@
-package com.example.beachfinder.ui.screens // O la ruta de tu paquete de UI
+package com.example.beachfinder.ui.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Accessible
+import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.LocalParking
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shower
+import androidx.compose.material.icons.filled.Wc
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
-import com.example.beachfinder.components.BeachCard // Asegúrate que la ruta sea correcta
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.runtime.setValue
-import com.example.beachfinder.model.HomeScreenViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.beachfinder.components.BeachCard
 import com.example.beachfinder.data.Beach
+import com.example.beachfinder.model.HomeScreenViewModel
+import com.example.beachfinder.ui.components.AppScaffold
 
-// Define a sealed class to represent the different screens
-sealed class Screen(val route: String, val icon: @Composable () -> Unit, val label: String) {
-    object Beaches : Screen("beaches", { Icon(Icons.Filled.List, contentDescription = null) }, "Playas")
-    object Map : Screen("map", { Icon(Icons.Filled.Map, contentDescription = null) }, "Mapa")
+// Facility icon data class for the scrollable row
+data class FacilityIconData(val label: String, val icon: ImageVector)
+
+// Composable for the horizontally scrolling row of facility icons
+
+@Composable
+fun FacilityIconRow(
+    selectedFacilities: Set<FacilityIconData>,
+    onFacilityToggled: (FacilityIconData) -> Unit
+) {
+    val facilities = listOf(
+        FacilityIconData("Pet-friendly", Icons.Default.Pets),
+        FacilityIconData("Alcohol", Icons.Default.LocalBar),
+        FacilityIconData("Fácil acceso", Icons.AutoMirrored.Filled.Accessible),
+        FacilityIconData("Baño", Icons.Default.Wc),
+        FacilityIconData("Restaurantes", Icons.Default.Restaurant),
+        FacilityIconData("Duchas", Icons.Default.Shower),
+        FacilityIconData("Parking", Icons.Default.LocalParking)
+    )
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
+    ) {
+        items(facilities) { facility ->
+            FacilityIconItem(
+                facility = facility,
+                selected = selectedFacilities.contains(facility),
+                onClick = { onFacilityToggled(facility) }
+            )
+        }
+    }
+}
+@Composable
+fun FacilityIconItem(
+    facility: FacilityIconData,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(72.dp)
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = if (selected) Color(0xFFB3E5FC) else Color.White,
+            border = if (selected) null else null,
+            shadowElevation = if (selected) 4.dp else 1.dp,
+            modifier = Modifier
+                .size(48.dp)
+                .clickable { onClick() }
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = facility.icon,
+                    contentDescription = facility.label,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = facility.label,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+sealed class Screen(val icon: @Composable () -> Unit, val label: String) {
+    object Beaches : Screen({ Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) }, "Playas")
+    object Map : Screen({ Icon(Icons.Default.Map, contentDescription = null) }, "Mapa")
+}
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeScreenViewModel = viewModel(), // Inyecta el ViewModel
-    onNavigateToDetail: (Beach) -> Unit
+    viewModel: HomeScreenViewModel = viewModel(),
+    onNavigateToDetail: (Beach) -> Unit,
+    navController: NavController
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredBeaches by viewModel.filteredBeaches.collectAsState()
-
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Beaches) }
+    var selectedFacilities by remember { mutableStateOf<Set<FacilityIconData>>(emptySet()) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("BeachFinder") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        },
+    AppScaffold(
+        navController = navController,
+        title = "BeachFinder",
         bottomBar = {
             NavigationBar {
-                // Beaches button
                 NavigationBarItem(
-                    icon = { Screen.Beaches.icon() },
+                    icon = Screen.Beaches.icon,
                     label = { Text(Screen.Beaches.label) },
                     selected = currentScreen == Screen.Beaches,
                     onClick = { currentScreen = Screen.Beaches }
                 )
-                // Map button
                 NavigationBarItem(
-                    icon = { Screen.Map.icon() },
+                    icon = Screen.Map.icon,
                     label = { Text(Screen.Map.label) },
                     selected = currentScreen == Screen.Map,
                     onClick = { currentScreen = Screen.Map }
@@ -74,58 +157,69 @@ fun HomeScreen(
     ) { innerPadding ->
         Column(
             modifier = modifier
-                .padding(innerPadding) // Aplica el padding del Scaffold
+                .padding(innerPadding)
                 .fillMaxSize()
         ) {
             when (currentScreen) {
                 Screen.Beaches -> {
-                    // Search Bar
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChange(it) },
+                    // Box para el buscador
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text("Buscar playas...") },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Search, contentDescription = "Search Icon")
-                        },
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            disabledContainerColor = MaterialTheme.colorScheme.surface,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            .height(80.dp)
+                            .background(color = Color(0xFFB3E5FC))
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.onSearchQueryChange(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Center)
+                                .padding(horizontal = 16.dp),
+                            label = { Text("Buscar playa...") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
                         )
-                    )
+                    }
+                    
+                    // Box separado para FacilityIconRow
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(color = Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FacilityIconRow(
+                            selectedFacilities = selectedFacilities,
+                            onFacilityToggled = { facility ->
+                                selectedFacilities = if (selectedFacilities.contains(facility)) {
+                                    selectedFacilities - facility
+                                } else {
+                                    selectedFacilities + facility
+                                }
+                            }
+                        )
+                    }
 
-                    // List of Beaches
                     if (filteredBeaches.isEmpty()) {
-                        if (searchQuery.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No se encontraron playas para \"$searchQuery\".",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No hay playas para mostrar.",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hay playas para mostrar.",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
                     } else {
                         LazyColumn(
@@ -140,15 +234,11 @@ fun HomeScreen(
                     }
                 }
                 Screen.Map -> {
-                    // Placeholder for the Map Screen content
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "Contenido del Mapa aquí",
-                            style = MaterialTheme.typography.headlineMedium
-                        )
+                        Text("El contenido del mapa aparecerá aquí", style = MaterialTheme.typography.headlineMedium)
                     }
                 }
             }
@@ -160,55 +250,12 @@ fun HomeScreen(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    // Usamos el tema de la app para el preview
-    // Si tienes un archivo Theme.kt, envuélvelo así:
-    // com.example.beachfinder.ui.theme.BeachFInderTheme { // Ajusta el nombre de tu tema
-    MaterialTheme { // O usa MaterialTheme directamente si no tienes un tema customizado complejo
-        HomeScreen(viewModel = PreviewHomeScreenViewModel(),
-            onNavigateToDetail = {}
-        )
-    }
-    // }
-}
-
-// Preview for the BottomAppBar
-@Preview(showBackground = true)
-@Composable
-fun BottomAppBarPreview() {
+    val navController = rememberNavController()
     MaterialTheme {
-        var currentScreen by remember { mutableStateOf<Screen>(Screen.Beaches) } // Simulate selected screen
-        Scaffold(
-            bottomBar = {
-                NavigationBar {
-                    NavigationBarItem(
-                        icon = { Screen.Beaches.icon() },
-                        label = { Text(Screen.Beaches.label) },
-                        selected = currentScreen == Screen.Beaches,
-                        onClick = { currentScreen = Screen.Beaches }
-                    )
-                    NavigationBarItem(
-                        icon = { Screen.Map.icon() },
-                        label = { Text(Screen.Map.label) },
-                        selected = currentScreen == Screen.Map,
-                        onClick = { currentScreen = Screen.Map }
-                    )
-                }
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Content behind BottomAppBar for preview")
-            }
-        }
-    }
-}
-
-// Un ViewModel de mentira para el Preview, para no depender de la lógica real de Koin/Hilt o datos de red
-class PreviewHomeScreenViewModel : HomeScreenViewModel() {
-    // Puedes sobreescribir los StateFlows si quieres un estado específico en el preview
-    // Por ejemplo, para mostrar una lista no vacía inmediatamente:
-    init {
-        // Esto es un poco un hack para previews, en ViewModel real los datos vendrían de otra forma.
-        // La lógica de `filteredBeaches` en el ViewModel base ya usa `allBeachesSample`
-        // por lo que el preview debería mostrar la lista por defecto.
+        HomeScreen(
+            viewModel = HomeScreenViewModel(),
+            onNavigateToDetail = {},
+            navController = navController
+        )
     }
 }

@@ -9,16 +9,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.beachfinder.data.Beach
 import com.example.beachfinder.model.HomeScreenViewModel
+import com.example.beachfinder.ui.screens.AccountScreen
 import com.example.beachfinder.ui.screens.BeachDetailScreen
+import com.example.beachfinder.ui.screens.FavoritesScreen
 import com.example.beachfinder.ui.screens.HomeScreen
+import com.example.beachfinder.ui.screens.SettingsScreen
+import com.example.beachfinder.ui.screens.TopBeachesScreen
 import com.example.beachfinder.ui.theme.BeachFInderTheme
 import java.net.URLEncoder
 import java.net.URLDecoder
@@ -27,6 +33,11 @@ import java.net.URLDecoder
 object Destinations {
     const val HOME_ROUTE = "home"
     const val BEACH_DETAIL_ROUTE = "beachDetail/{beachName}"
+    const val ACCOUNT_ROUTE = "account"
+    const val FAVORITES_ROUTE = "favorites"
+    const val TOP_BEACHES_ROUTE = "top_beaches"
+    const val SETTINGS_ROUTE = "settings"
+
     fun beachDetailRoute(beachName: String) = "beachDetail/$beachName"
 }
 
@@ -48,6 +59,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview(showBackground = true)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -62,9 +74,14 @@ fun AppNavigation() {
                     // Encode the beach name to safely pass it as a URL argument
                     val encodedBeachName = URLEncoder.encode(beach.name, "UTF-8")
                     navController.navigate(Destinations.beachDetailRoute(encodedBeachName))
-                }
+                },
+                navController = navController
             )
         }
+        composable(Destinations.ACCOUNT_ROUTE) { AccountScreen(navController) }
+        composable(Destinations.FAVORITES_ROUTE) { FavoritesScreen(navController) }
+        composable(Destinations.TOP_BEACHES_ROUTE) { TopBeachesScreen(navController) }
+        composable(Destinations.SETTINGS_ROUTE) { SettingsScreen(navController) }
         composable(
             route = Destinations.BEACH_DETAIL_ROUTE,
             arguments = listOf(navArgument("beachName") { type = NavType.StringType })

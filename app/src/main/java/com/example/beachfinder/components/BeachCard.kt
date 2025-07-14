@@ -152,7 +152,7 @@ fun OcupationIndicator(ocupation: Ocupation, modifier: Modifier = Modifier) {
 
 // Datos de ejemplo para el Preview
 // Asegúrate de tener tu clase Beach y Ocupation definidas como en el contexto previo.
-@Preview(showBackground = true)
+
 @Composable
 fun BeachCardPreview() {
     val sampleBeach = Beach(
