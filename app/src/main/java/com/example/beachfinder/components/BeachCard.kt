@@ -51,7 +51,7 @@ fun BeachCard(
             // Una forma más robusta sería pasar la altura deseada o calcularla dinámicamente.
             // Por ahora, usaremos aspectRatio para la imagen para que mantenga proporciones.
             Image(
-                painterResource(R.drawable.playacaballeros),
+                painterResource(beach.image),
                 contentDescription = "Image of ${beach.name}",
                 modifier = Modifier
                     .fillMaxWidth()
