@@ -26,6 +26,15 @@ import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Restaurant
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shower
 import androidx.compose.material.icons.filled.Wc
@@ -42,11 +51,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.beachfinder.components.BeachCard
 import com.example.beachfinder.data.Beach
+import com.example.beachfinder.data.Facility
+import com.example.beachfinder.data.Ocupation
+import com.example.beachfinder.model.HomeScreenView
 import com.example.beachfinder.model.HomeScreenViewModel
 import com.example.beachfinder.ui.components.AppScaffold
+import com.example.beachfinder.utils.getOccupationColor
 
 // Facility icon data class for the scrollable row
-data class FacilityIconData(val label: String, val icon: ImageVector)
+data class FacilityIconData(val label: String, val icon: ImageVector, val facility: Facility)
 
 // Composable for the horizontally scrolling row of facility icons
 
@@ -56,13 +69,13 @@ fun FacilityIconRow(
     onFacilityToggled: (FacilityIconData) -> Unit
 ) {
     val facilities = listOf(
-        FacilityIconData("Pet-friendly", Icons.Default.Pets),
-        FacilityIconData("Alcohol", Icons.Default.LocalBar),
-        FacilityIconData("Fácil acceso", Icons.AutoMirrored.Filled.Accessible),
-        FacilityIconData("Baño", Icons.Default.Wc),
-        FacilityIconData("Restaurantes", Icons.Default.Restaurant),
-        FacilityIconData("Duchas", Icons.Default.Shower),
-        FacilityIconData("Parking", Icons.Default.LocalParking)
+        FacilityIconData("Pet-friendly", Icons.Default.Pets, Facility.PETFRIENDLY),
+        FacilityIconData("Alcohol", Icons.Default.LocalBar, Facility.ALCOHOL),
+        FacilityIconData("Fácil acceso", Icons.AutoMirrored.Filled.Accessible, Facility.FACILACCESO),
+        FacilityIconData("Baño", Icons.Default.Wc, Facility.BANIO),
+        FacilityIconData("Restaurantes", Icons.Default.Restaurant, Facility.RESTAURANTES),
+        FacilityIconData("Duchas", Icons.Default.Shower, Facility.DUCHAS),
+        FacilityIconData("Parking", Icons.Default.LocalParking, Facility.PARKING)
     )
     LazyRow(
         modifier = Modifier
@@ -132,25 +145,55 @@ fun HomeScreen(
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredBeaches by viewModel.filteredBeaches.collectAsState()
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Beaches) }
-    var selectedFacilities by remember { mutableStateOf<Set<FacilityIconData>>(emptySet()) }
+    val selectedFacilitiesFromVM by viewModel.selectedFacilities.collectAsState()
+    val currentViewFromVM by viewModel.currentView.collectAsState()
+    
+    // Mapeo entre HomeScreenView y Screen
+    val currentScreen by remember(currentViewFromVM) { 
+        mutableStateOf<Screen>(
+            when (currentViewFromVM) {
+                HomeScreenView.BEACHES_LIST -> Screen.Beaches
+                HomeScreenView.MAP -> Screen.Map
+            }
+        )
+    }
+    
+    // Convertir las Facility seleccionadas en el ViewModel a FacilityIconData para la UI
+    val facilityMapping = remember {
+        mapOf<Facility, FacilityIconData>(
+            Facility.PETFRIENDLY to FacilityIconData("Pet-friendly", Icons.Default.Pets, Facility.PETFRIENDLY),
+            Facility.ALCOHOL to FacilityIconData("Alcohol", Icons.Default.LocalBar, Facility.ALCOHOL),
+            Facility.FACILACCESO to FacilityIconData("Fácil acceso", Icons.AutoMirrored.Filled.Accessible, Facility.FACILACCESO),
+            Facility.BANIO to FacilityIconData("Baño", Icons.Default.Wc, Facility.BANIO),
+            Facility.RESTAURANTES to FacilityIconData("Restaurantes", Icons.Default.Restaurant, Facility.RESTAURANTES),
+            Facility.DUCHAS to FacilityIconData("Duchas", Icons.Default.Shower, Facility.DUCHAS),
+            Facility.PARKING to FacilityIconData("Parking", Icons.Default.LocalParking, Facility.PARKING)
+        )
+    }
+    
+    val selectedFacilities = selectedFacilitiesFromVM.mapNotNull { facilityMapping[it] }.toSet()
 
     AppScaffold(
         navController = navController,
         title = "BeachFinder",
+        disableDrawerGestures = currentScreen == Screen.Map,
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
                     icon = Screen.Beaches.icon,
                     label = { Text(Screen.Beaches.label) },
                     selected = currentScreen == Screen.Beaches,
-                    onClick = { currentScreen = Screen.Beaches }
+                    onClick = { 
+                        viewModel.updateCurrentView(HomeScreenView.BEACHES_LIST)
+                    }
                 )
                 NavigationBarItem(
                     icon = Screen.Map.icon,
                     label = { Text(Screen.Map.label) },
                     selected = currentScreen == Screen.Map,
-                    onClick = { currentScreen = Screen.Map }
+                    onClick = { 
+                        viewModel.updateCurrentView(HomeScreenView.MAP)
+                    }
                 )
             }
         }
@@ -199,12 +242,8 @@ fun HomeScreen(
                     ) {
                         FacilityIconRow(
                             selectedFacilities = selectedFacilities,
-                            onFacilityToggled = { facility ->
-                                selectedFacilities = if (selectedFacilities.contains(facility)) {
-                                    selectedFacilities - facility
-                                } else {
-                                    selectedFacilities + facility
-                                }
+                            onFacilityToggled = { facilityIconData ->
+                                viewModel.toggleFacility(facilityIconData.facility)
                             }
                         )
                     }
@@ -234,11 +273,67 @@ fun HomeScreen(
                     }
                 }
                 Screen.Map -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("El contenido del mapa aparecerá aquí", style = MaterialTheme.typography.headlineMedium)
+                    // Implementación del mapa de Google
+                    // Coordenadas iniciales (centro de México)
+                    val initialPosition = LatLng(19.4326, -99.1332)
+                    val cameraPositionState = rememberCameraPositionState {
+                        position = CameraPosition.fromLatLngZoom(initialPosition, 5f)
+                    }
+                    
+                    // Usar la lista filtrada de playas del ViewModel
+                    // (ya filtrada por búsqueda y facilities seleccionadas)
+                    
+                    // Filtrar solo las playas que tienen coordenadas válidas
+                    val beachesWithCoordinates = filteredBeaches.filter { beach ->
+                        beach.latitude != 0.0 || beach.longitude != 0.0
+                    }
+                    
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            properties = MapProperties(
+                                isMyLocationEnabled = false,
+                                mapType = com.google.maps.android.compose.MapType.NORMAL,
+                                isTrafficEnabled = false
+                            ),
+                            uiSettings = MapUiSettings(
+                                zoomControlsEnabled = true,
+                                myLocationButtonEnabled = false,
+                                compassEnabled = true,
+                                mapToolbarEnabled = true,
+                                zoomGesturesEnabled = true,
+                                scrollGesturesEnabled = true,
+                                rotationGesturesEnabled = true,
+                                tiltGesturesEnabled = true
+                            )
+                        ) {
+                            // Añadir marcadores para cada playa
+                            beachesWithCoordinates.forEach { beach ->
+                                val position = LatLng(beach.latitude, beach.longitude)
+                                
+                                // Crear un marcador personalizado con el color correspondiente a la ocupación
+                                Marker(
+                                    state = MarkerState(position = position),
+                                    title = beach.name,
+                                    snippet = beach.location,
+                                    icon = BitmapDescriptorFactory.defaultMarker(
+                                        when (beach.ocupation) {
+                                            Ocupation.BAJA -> BitmapDescriptorFactory.HUE_GREEN
+                                            Ocupation.MEDIA -> BitmapDescriptorFactory.HUE_ORANGE
+                                            Ocupation.ALTA -> BitmapDescriptorFactory.HUE_RED
+                                        }
+                                    ),
+                                    onClick = {
+                                        // Navegar a los detalles de la playa
+                                        cameraPositionState.position = CameraPosition.fromLatLngZoom(position, 12f)
+                                        // Navegar a la pantalla de detalles
+                                        onNavigateToDetail(beach)
+                                        true
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

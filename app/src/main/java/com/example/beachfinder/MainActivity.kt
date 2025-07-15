@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -14,10 +15,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.beachfinder.data.Beach
+import com.example.beachfinder.model.HomeScreenView
 import com.example.beachfinder.model.HomeScreenViewModel
 import com.example.beachfinder.ui.screens.AccountScreen
 import com.example.beachfinder.ui.screens.BeachDetailScreen
@@ -32,13 +33,17 @@ import java.net.URLDecoder
 // Define navigation routes
 object Destinations {
     const val HOME_ROUTE = "home"
-    const val BEACH_DETAIL_ROUTE = "beachDetail/{beachName}"
+    const val BEACH_DETAIL_ROUTE = "beachDetail/{beachName}/{fromView}"
     const val ACCOUNT_ROUTE = "account"
     const val FAVORITES_ROUTE = "favorites"
     const val TOP_BEACHES_ROUTE = "top_beaches"
     const val SETTINGS_ROUTE = "settings"
 
-    fun beachDetailRoute(beachName: String) = "beachDetail/$beachName"
+    // Valores para el parámetro fromView
+    const val VIEW_LIST = "list"
+    const val VIEW_MAP = "map"
+
+    fun beachDetailRoute(beachName: String, fromView: String) = "beachDetail/$beachName/$fromView"
 }
 
 class MainActivity : ComponentActivity() {
@@ -73,7 +78,13 @@ fun AppNavigation() {
                 onNavigateToDetail = { beach ->
                     // Encode the beach name to safely pass it as a URL argument
                     val encodedBeachName = URLEncoder.encode(beach.name, "UTF-8")
-                    navController.navigate(Destinations.beachDetailRoute(encodedBeachName))
+                    // Determinar la vista actual para saber a dónde volver
+                    val currentView = homeScreenViewModel.currentView.value
+                    val fromView = when (currentView) {
+                        HomeScreenView.BEACHES_LIST -> Destinations.VIEW_LIST
+                        HomeScreenView.MAP -> Destinations.VIEW_MAP
+                    }
+                    navController.navigate(Destinations.beachDetailRoute(encodedBeachName, fromView))
                 },
                 navController = navController
             )
@@ -84,18 +95,28 @@ fun AppNavigation() {
         composable(Destinations.SETTINGS_ROUTE) { SettingsScreen(navController) }
         composable(
             route = Destinations.BEACH_DETAIL_ROUTE,
-            arguments = listOf(navArgument("beachName") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("beachName") { type = NavType.StringType },
+                navArgument("fromView") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val beachName = backStackEntry.arguments?.getString("beachName")
+            val fromView = backStackEntry.arguments?.getString("fromView")
             if (beachName != null) {
                 val decodedBeachName = URLDecoder.decode(beachName, "UTF-8")
                 // Retrieve the beach object using the ViewModel's sample data
-                val selectedBeach = homeScreenViewModel.getAllBeachesSample().find { it.name == decodedBeachName }
-
-                if (selectedBeach != null) {
+                val beach = homeScreenViewModel.getAllBeachesSample().find { it.name == decodedBeachName }
+                if (beach != null && fromView != null) {
                     BeachDetailScreen(
-                        beach = selectedBeach,
-                        onBackClick = { navController.popBackStack() }
+                        beach = beach,
+                        onBackClick = { 
+                            // Actualizar la vista en el ViewModel según de dónde venimos
+                            when (fromView) {
+                                Destinations.VIEW_LIST -> homeScreenViewModel.updateCurrentView(HomeScreenView.BEACHES_LIST)
+                                Destinations.VIEW_MAP -> homeScreenViewModel.updateCurrentView(HomeScreenView.MAP)
+                            }
+                            navController.popBackStack() 
+                        }
                     )
                 } else {
                     // Handle case where beach is not found (e.g., show error, navigate back)

@@ -27,5 +27,7 @@ data class Beach(
     val description: Int,
     val facilities: Set<Facility>,
     val rating: Int,
-    val stars: Int
+    val stars: Int,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )

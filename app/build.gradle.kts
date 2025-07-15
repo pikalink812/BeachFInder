@@ -53,6 +53,12 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.0") // Para más iconos, opcional
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // Check for the latest stable version
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    
+    // Google Maps
+    implementation("com.google.android.gms:play-services-maps:19.2.0")
+    implementation("com.google.maps.android:maps-compose:4.3.0") // Compose wrapper para Maps
+    implementation("com.google.android.gms:play-services-location:21.3.0") // Para funcionalidades de ubicación
+    implementation("com.google.maps.android:android-maps-utils:3.5.3") // Utilidades adicionales para Maps
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -23,6 +23,7 @@ fun AppScaffold(
     navController: NavController,
     title: String,
     bottomBar: @Composable () -> Unit = {},
+    disableDrawerGestures: Boolean = false,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -41,6 +42,7 @@ fun AppScaffold(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = !disableDrawerGestures,
         drawerContent = {
             ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
