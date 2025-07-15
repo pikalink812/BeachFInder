@@ -37,12 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.beachfinder.components.BeachCard
 import com.example.beachfinder.data.Beach
-import com.example.beachfinder.model.HomeScreenViewModel
+import com.example.beachfinder.model.BeachViewModel
 import com.example.beachfinder.ui.components.AppScaffold
 
 // Facility icon data class for the scrollable row
@@ -126,14 +126,15 @@ sealed class Screen(val icon: @Composable () -> Unit, val label: String) {
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeScreenViewModel = viewModel(),
-    onNavigateToDetail: (Beach) -> Unit,
-    navController: NavController
+    viewModel: BeachViewModel,
+    onNavigateToDetail: (Int) -> Unit,
+    navController: NavHostController
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredBeaches by viewModel.filteredBeaches.collectAsState()
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Beaches) }
-    var selectedFacilities by remember { mutableStateOf<Set<FacilityIconData>>(emptySet()) }
+    val selectedFacilities by viewModel.selectedFacilityIcons.collectAsState() // Observa las facilidades seleccionadas
+
 
     AppScaffold(
         navController = navController,
@@ -188,7 +189,7 @@ fun HomeScreen(
                             )
                         )
                     }
-                    
+
                     // Box separado para FacilityIconRow
                     Box(
                         modifier = Modifier
@@ -200,11 +201,7 @@ fun HomeScreen(
                         FacilityIconRow(
                             selectedFacilities = selectedFacilities,
                             onFacilityToggled = { facility ->
-                                selectedFacilities = if (selectedFacilities.contains(facility)) {
-                                    selectedFacilities - facility
-                                } else {
-                                    selectedFacilities + facility
-                                }
+                                viewModel.onFacilityToggled(facility)
                             }
                         )
                     }
@@ -227,8 +224,8 @@ fun HomeScreen(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(filteredBeaches, key = { beach -> beach.name + beach.location }) { beach ->
-                                BeachCard(beach = beach, onClick = onNavigateToDetail)
+                            items(filteredBeaches, key = {beach -> beach.id }) { beach ->
+                                BeachCard(beach = beach, onClick = { onNavigateToDetail(beach.id) })
                             }
                         }
                     }
@@ -246,16 +243,4 @@ fun HomeScreen(
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    val navController = rememberNavController()
-    MaterialTheme {
-        HomeScreen(
-            viewModel = HomeScreenViewModel(),
-            onNavigateToDetail = {},
-            navController = navController
-        )
-    }
-}
+

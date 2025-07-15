@@ -21,13 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.beachfinder.components.BeachCard
-import com.example.beachfinder.model.HomeScreenViewModel
+import com.example.beachfinder.model.BeachViewModel
 import com.example.beachfinder.ui.components.AppScaffold
 
 @Composable
 fun FavoritesScreen(navController: NavController) {
     // Obtener el ViewModel y los datos de playas
-    val viewModel: HomeScreenViewModel = viewModel()
+    val viewModel: BeachViewModel = viewModel()
     val beaches by viewModel.filteredBeaches.collectAsState()
     val favoriteBeaches = beaches.filter { it.favourite }
 

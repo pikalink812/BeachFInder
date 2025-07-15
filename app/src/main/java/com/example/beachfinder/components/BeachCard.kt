@@ -163,10 +163,12 @@ fun BeachCardPreview() {
         ocupation = Ocupation.MEDIA,
         sea = "Olas grandes",
         windSpeed = 18.0,
-        description = R.string.desc_caballeros,
+        description = R.string.desc_playa_1,
         facilities = setOf(), // No relevante para este preview específico
         rating = 156,
-        stars = 5
+        stars = 5,
+        latitude = 0.0,
+        longitude = 0.0
     )
     MaterialTheme { // Necesitas un tema para los previews de Material3
         BeachCard(beach = sampleBeach, onClick = {})

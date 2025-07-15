@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") version "2.0.21-1.0.27"
 }
 
 android {
@@ -49,10 +50,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.compose.material:material-icons-core:1.7.0") // Reemplaza con la última versión
     implementation("androidx.compose.material:material-icons-extended:1.7.0") // Para más iconos, opcional
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // Check for the latest stable version
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // --- Room Dependencies ---
+    val room_version = "2.6.1" // <--- Define Room version here for easy management
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version") // For Coroutines support
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -60,4 +69,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }

@@ -1,5 +1,8 @@
 package com.example.beachfinder.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
 enum class Ocupation{
     ALTA,
     MEDIA,
@@ -16,7 +19,10 @@ enum class Facility{
     PARKING
 }
 
+@Entity(tableName = "beaches")
 data class Beach(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val name: String,
     val location: String,
     val favourite: Boolean,
@@ -27,5 +33,7 @@ data class Beach(
     val description: Int,
     val facilities: Set<Facility>,
     val rating: Int,
-    val stars: Int
+    val stars: Int,
+    val latitude: Double,
+    val longitude: Double
 )

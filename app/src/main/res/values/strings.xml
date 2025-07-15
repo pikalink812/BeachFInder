@@ -1,5 +1,18 @@
+
+
 <resources>
     <string name="app_name">BeachFInder</string>
-    <string name="desc_caballeros">Playa con olas potentes y constantes, ideal para surfistas y a
-        sólo 40km al sur de la ciudad de Lima</string>
+
+    <string name="desc_playa_1">Con su arena fina y blanca, esta playa es un paraíso escondido, ideal para relajarse y disfrutar de la tranquilidad del mar. Sus aguas cristalinas invitan a un baño refrescante.</string>
+    <string name="desc_2">Conocida por sus impresionantes atardeceres, esta cala rocosa ofrece vistas panorámicas y formaciones naturales únicas. Es perfecta para los amantes de la fotografía.</string>
+    <string name="desc_3">Una extensa playa urbana concurrida, ideal para deportes acuáticos como el surf o el voleibol de playa. Cuenta con una gran variedad de restaurantes y tiendas a lo largo de su paseo marítimo.</string>
+    <string name="desc_4">Pequeña y aislada, esta playa de guijarros es famosa por su historia local y las cuevas marinas que la rodean. Un lugar ideal para explorar y encontrar tesoros escondidos.</string>
+    <string name="desc_5">Caracterizada por sus aguas tranquilas y poco profundas, es el destino perfecto para familias con niños. Las palmeras que bordean la orilla ofrecen sombra natural y un ambiente de paz.</string>
+    <string name="desc_6">Un punto de encuentro para surfistas y aventureros, con olas constantes y un ambiente vibrante. Hay escuelas de surf y alquiler de equipos disponibles.</string>
+    <string name="desc_7">Amplia y expansiva, con dunas suaves que se mezclan con la arena. Es un lugar popular para caminatas largas y para aquellos que buscan espacio y libertad.</string>
+    <string name="desc_8">Accesible solo por un sendero oculto, esta joya virgen ofrece una experiencia de naturaleza pura. Sus arrecifes cercanos son ideales para el snorkel y el buceo.</string>
+    <string name="desc_9">Famosa por la bioluminiscencia nocturna que ilumina sus aguas. Durante el día, sus piscinas naturales formadas por la marea son perfectas para chapotear.</string>
+    <string name="desc_10">Esta playa se distingue por un acantilado imponente que ofrece un mirador espectacular del océano. La parte inferior es una playa de arena gruesa, ideal para la pesca y la contemplación.</string>
+
+
 </resources>

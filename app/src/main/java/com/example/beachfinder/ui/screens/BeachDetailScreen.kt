@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder // O Favorite para 
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,10 +33,25 @@ import com.example.beachfinder.data.Ocupation
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BeachDetailScreen(
-    beach: Beach, // La playa que se mostrará
+    beach: Beach?, // La playa que se mostrará
     onBackClick: () -> Unit, // Callback para cuando se presione el botón de atrás
     modifier: Modifier = Modifier
 ) {
+    if (beach == null) {
+        // Manejo si la playa es nula (debería ser capturado antes, pero es una buena salvaguarda)
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Error: No se pudo cargar la información de la playa.")
+            // Puedes añadir un Button para onBackClick si quieres
+            // SideEffect para volver atrás automáticamente si no se carga.
+            LaunchedEffect(Unit) {
+                onBackClick()
+            }
+        }
+        return // Importante para no intentar acceder a `beach` si es null
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -282,10 +298,12 @@ fun BeachDetailScreenPreview() {
         ocupation = Ocupation.MEDIA,
         sea = "Olas grandes",
         windSpeed = 18.0,
-        description = R.string.desc_caballeros,
+        description = R.string.desc_playa_1,
         facilities = setOf(Facility.RESTAURANTES, Facility.ALCOHOL), // No relevante para este preview específico
         rating = 156,
-        stars = 5
+        stars = 5,
+        latitude = 0.0,
+        longitude = 0.0
     )
     MaterialTheme {
         BeachDetailScreen(beach = sampleBeach, onBackClick = {})
