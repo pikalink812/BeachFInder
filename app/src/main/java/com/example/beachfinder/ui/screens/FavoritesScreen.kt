@@ -23,8 +23,7 @@ import androidx.navigation.NavController
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import com.example.beachfinder.components.BeachCard
-import com.example.beachfinder.model.BeachEntryViewModel
-import com.example.beachfinder.model.HomeScreenView
+import com.example.beachfinder.viewModels.BeachEntryViewModel
 import com.example.beachfinder.ui.components.AppScaffold
 
 @Composable

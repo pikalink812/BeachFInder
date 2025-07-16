@@ -1,21 +1,18 @@
-package com.example.beachfinder.model
+package com.example.beachfinder.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.beachfinder.R
 import com.example.beachfinder.data.Beach
 import com.example.beachfinder.data.BeachesRepository
 import com.example.beachfinder.data.Facility
-import com.example.beachfinder.data.Ocupation
 import com.example.beachfinder.ui.screens.FacilityIconData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update

@@ -1,6 +1,5 @@
 package com.example.beachfinder.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,16 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.beachfinder.components.BeachCard
 import com.example.beachfinder.data.Beach
 import com.example.beachfinder.data.Ocupation
-import com.example.beachfinder.model.BeachEntryViewModel
-import com.example.beachfinder.model.HomeScreenView
+import com.example.beachfinder.viewModels.BeachEntryViewModel
+import com.example.beachfinder.viewModels.HomeScreenView
 import com.example.beachfinder.ui.components.AppScaffold
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition

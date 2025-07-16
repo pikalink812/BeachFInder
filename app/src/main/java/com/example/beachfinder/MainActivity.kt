@@ -21,9 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.beachfinder.model.BeachEntryViewModel
-import com.example.beachfinder.model.BeachViewModelFactory
-import com.example.beachfinder.model.HomeScreenView
+import com.example.beachfinder.viewModels.BeachEntryViewModel
+import com.example.beachfinder.viewModels.BeachViewModelFactory
+import com.example.beachfinder.viewModels.HomeScreenView
 import com.example.beachfinder.ui.screens.AccountScreen
 import com.example.beachfinder.ui.screens.BeachDetailScreen
 import com.example.beachfinder.ui.screens.FavoritesScreen
