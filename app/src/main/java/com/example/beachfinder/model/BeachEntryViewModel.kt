@@ -83,7 +83,7 @@ class BeachEntryViewModel(private val beachesRepository: BeachesRepository) : Vi
         }
     }
 
-    // El filteredBeaches ahora se combina con _beachListUiState para obtener los datos de la BD
+    // El filteredBeaches se combina con _beachListUiState para obtener los datos de la BD
     val filteredBeaches: StateFlow<List<Beach>> =
         combine(
             _beachListUiState.map { it.beachList }, // Obtiene solo la lista de playas del UI State

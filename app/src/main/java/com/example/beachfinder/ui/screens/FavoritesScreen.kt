@@ -24,6 +24,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import com.example.beachfinder.components.BeachCard
 import com.example.beachfinder.model.BeachEntryViewModel
+import com.example.beachfinder.model.HomeScreenView
 import com.example.beachfinder.ui.components.AppScaffold
 
 @Composable
@@ -73,7 +74,7 @@ fun FavoritesScreen(
                     items(favoriteBeaches, key = { beach -> beach.name + beach.location }) { beach ->
                         BeachCard(beach = beach, onClick = { 
                             val encodedName = URLEncoder.encode(beach.name, StandardCharsets.UTF_8.toString())
-                            navController.navigate("beach_detail/${encodedName}")
+                            navController.navigate("beachDetail/${encodedName}/FAVORITES")
                         })
                     }
                 }

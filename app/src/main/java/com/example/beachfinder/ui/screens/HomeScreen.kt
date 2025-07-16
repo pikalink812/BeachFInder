@@ -59,10 +59,10 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
-// Facility icon data class for the scrollable row
+
 data class FacilityIconData(val label: String, val icon: ImageVector)
 
-// Composable for the horizontally scrolling row of facility icons
+// Fila de iconos para filtrar lista
 
 @Composable
 fun FacilityIconRow(
@@ -94,6 +94,8 @@ fun FacilityIconRow(
         }
     }
 }
+
+// Mostrar iconos dependiendo de su seleccion
 @Composable
 fun FacilityIconItem(
     facility: FacilityIconData,
@@ -142,9 +144,9 @@ fun BeachMapScreen(
     onFacilityToggled: (FacilityIconData) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val mexicoCity = LatLng(19.4326, -99.1332) // Punto central inicial (CDMX)
+    val limaCity = LatLng(-12.04318, -77.02824) // Punto central inicial (Lima)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(mexicoCity, 5f)
+        position = CameraPosition.fromLatLngZoom(limaCity, 5f)
     }
     
     // Banderas para controlar la visibilidad de filtros
@@ -287,18 +289,18 @@ fun BeachMapScreen(
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: BeachEntryViewModel,
-    onNavigateToDetail: (Beach) -> Unit,  // Cambiado para recibir un objeto Beach en lugar de solo ID
+    onNavigateToDetail: (Beach) -> Unit,  
     navController: NavHostController
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredBeaches by viewModel.filteredBeaches.collectAsState()
     val currentView = viewModel.currentView.collectAsState().value
-    val selectedFacilities by viewModel.selectedFacilityIcons.collectAsState() // Observa las facilidades seleccionadas
+    val selectedFacilities by viewModel.selectedFacilityIcons.collectAsState() 
 
     AppScaffold(
         navController = navController,
         title = "BeachFinder",
-        enableDrawerGestures = currentView != HomeScreenView.MAP, // Deshabilitar gestos cuando está en vista de mapa
+        enableDrawerGestures = currentView != HomeScreenView.MAP, 
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(

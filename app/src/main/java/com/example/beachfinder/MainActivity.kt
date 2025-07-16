@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
                         factory = BeachViewModelFactory((context.applicationContext as BeachApplication).beachesRepository)
                     )
 
-                    AppNavigation(navController = navController, beachViewModel = beachViewModel) // Pasar las variables necesarias
+                    AppNavigation(navController = navController, beachViewModel = beachViewModel) 
                 }
             }
         }
@@ -97,13 +97,10 @@ fun AppNavigation(
 
     NavHost(navController = navController, startDestination = Destinations.HOME_ROUTE) {
         composable(Destinations.HOME_ROUTE) {
-            // Pass the BeachViewModel to HomeScreen
             HomeScreen(
                 viewModel = beachViewModel,
-                onNavigateToDetail = { beach -> // Ahora recibe un objeto Beach completo
-                    // Codificar el nombre de la playa para URL
+                onNavigateToDetail = { beach -> 
                     val encodedBeachName = URLEncoder.encode(beach.name, StandardCharsets.UTF_8.toString())
-                    // Obtener la vista actual para restaurarla al volver
                     val currentView = beachViewModel.currentView.value.toString()
                     navController.navigate(Destinations.beachDetailRoute(encodedBeachName, currentView))
                 },
@@ -111,7 +108,7 @@ fun AppNavigation(
             )
         }
         composable(Destinations.ACCOUNT_ROUTE) { AccountScreen(navController) }
-        composable(Destinations.FAVORITES_ROUTE) { FavoritesScreen(navController) }
+        composable(Destinations.FAVORITES_ROUTE) { FavoritesScreen(navController, beachViewModel) }
         composable(Destinations.TOP_BEACHES_ROUTE) { TopBeachesScreen(navController) }
         composable(Destinations.SETTINGS_ROUTE) { SettingsScreen(navController) }
 
@@ -126,15 +123,13 @@ fun AppNavigation(
             val fromView = backStackEntry.arguments?.getString("fromView")
             
             if (encodedBeachName != null) {
-                // Decodificar el nombre de la playa
                 val beachName = URLDecoder.decode(encodedBeachName, StandardCharsets.UTF_8.toString())
                 Log.d("BeachDetailNav", "Navegando a detalle. Nombre de playa: $beachName, Vista origen: $fromView")
 
-                // Recolecta todas las playas del ViewModel (asíncronamente)
+
                 val beachListUiState by beachViewModel.beachListUiState.collectAsState()
                 val allBeaches = beachListUiState.beachList
 
-                // Buscar la playa por nombre (más confiable que por ID para recuperarla)
                 val selectedBeach = allBeaches.find { it.name == beachName }
 
                 if (selectedBeach != null) {
@@ -146,15 +141,26 @@ fun AppNavigation(
                             // Restaurar la vista previa al volver
                             if (fromView != null) {
                                 try {
-                                    // Intentar convertir el string a HomeScreenView
-                                    val previousView = HomeScreenView.valueOf(fromView)
-                                    beachViewModel.updateCurrentView(previousView)
+                                    if (fromView == "FAVORITES") {
+                                        navController.popBackStack()
+                                    } else {
+                                        val previousView = HomeScreenView.valueOf(fromView)
+                                        beachViewModel.updateCurrentView(previousView)
+                                        navController.popBackStack()
+                                    }
                                 } catch (e: IllegalArgumentException) {
                                     // Por defecto a LIST si hay error
                                     beachViewModel.updateCurrentView(HomeScreenView.LIST)
+                                    navController.popBackStack()
                                 }
+                            } else {
+                                navController.popBackStack()
                             }
-                            navController.popBackStack() 
+                        },
+                        onFavoriteToggle = { updatedBeach ->
+                            // Actualizar la playa en la base de datos
+                            beachViewModel.updateBeach(updatedBeach)
+                            Log.d("BeachDetailScreen", "Estado de favorito actualizado para ${updatedBeach.name}: ${updatedBeach.favourite}")
                         }
                     )
                 } else {

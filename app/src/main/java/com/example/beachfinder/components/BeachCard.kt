@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 
 import com.example.beachfinder.R // Asume que tienes un placeholder en drawable
 import com.example.beachfinder.data.Beach
-import com.example.beachfinder.data.Ocupation // Asume que tienes este enum
+import com.example.beachfinder.data.Ocupation 
 
 @Composable
 fun BeachCard(
@@ -55,8 +55,8 @@ fun BeachCard(
                 contentDescription = "Image of ${beach.name}",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(16f / 9f), // Ajusta según la proporción deseada de tus imágenes
-                contentScale = ContentScale.Crop // Crop para llenar el espacio y cortar si es necesario
+                    .aspectRatio(16f / 9f), 
+                contentScale = ContentScale.Crop 
             )
 
             // Contenido debajo de la imagen
@@ -68,19 +68,18 @@ fun BeachCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween // Para separar nombre y ocupación
+                    horizontalArrangement = Arrangement.SpaceBetween 
                 ) {
                     Text(
                         text = beach.name,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f) // Permite que el nombre ocupe el espacio disponible
+                        modifier = Modifier.weight(1f) 
                     )
-                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre nombre y punto
+                    Spacer(modifier = Modifier.width(8.dp)) 
                     OcupationIndicator(ocupation = beach.ocupation)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        // Mantenemos el texto "Ocupación:" aquí para claridad, aunque el indicador visual ya está arriba
                         text = "${beach.ocupation.name.lowercase().replaceFirstChar { it.uppercase() }} ocupación",
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -93,8 +92,8 @@ fun BeachCard(
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
                         contentDescription = "Location icon",
-                        tint = MaterialTheme.colorScheme.primary, // Puedes ajustar el color
-                        modifier = Modifier.size(18.dp) // Ajusta el tamaño del icono
+                        tint = MaterialTheme.colorScheme.primary, 
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -106,15 +105,14 @@ fun BeachCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Fila para Rating y Estrellas (como estaba antes)
+                // Fila para Rating y Estrellas 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
 
 
-                    // Asumiendo que tienes un campo 'rating' y 'numberOfStars' en tu clase Beach
-                    // Si no los tienes, puedes adaptarlo o quitarlo.
+
                     Text(
                         text = "${"★".repeat(beach.stars)}${"☆".repeat(5 - beach.stars)}",
                         style = MaterialTheme.typography.bodyMedium,
@@ -144,14 +142,13 @@ fun OcupationIndicator(ocupation: Ocupation, modifier: Modifier = Modifier) {
     }
     Box(
         modifier = modifier
-            .size(12.dp) // Tamaño del círculo
+            .size(12.dp) 
             .clip(CircleShape)
             .background(color)
     )
 }
 
 // Datos de ejemplo para el Preview
-// Asegúrate de tener tu clase Beach y Ocupation definidas como en el contexto previo.
 
 @Composable
 fun BeachCardPreview() {
@@ -159,18 +156,18 @@ fun BeachCardPreview() {
         name = "Playa Caballeros",
         location = "Punta Hermosa, Lima",
         favourite = true,
-        image = R.drawable.playacaballeros, // URL de ejemplo para Coil
+        image = R.drawable.playacaballeros, 
         ocupation = Ocupation.MEDIA,
         sea = "Olas grandes",
         windSpeed = 18.0,
         description = R.string.desc_playa_1,
-        facilities = setOf(), // No relevante para este preview específico
+        facilities = setOf(), 
         rating = 156,
         stars = 5,
         latitude = 0.0,
         longitude = 0.0
     )
-    MaterialTheme { // Necesitas un tema para los previews de Material3
+    MaterialTheme { 
         BeachCard(beach = sampleBeach, onClick = {})
     }
 }

@@ -1,5 +1,7 @@
 package com.example.beachfinder.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,16 +11,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.FavoriteBorder // O Favorite para un corazón lleno
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,18 +42,17 @@ import com.example.beachfinder.data.Ocupation
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BeachDetailScreen(
-    beach: Beach?, // La playa que se mostrará
-    onBackClick: () -> Unit, // Callback para cuando se presione el botón de atrás
-    modifier: Modifier = Modifier
+    beach: Beach?, 
+    onBackClick: () -> Unit, 
+    modifier: Modifier = Modifier,
+    onFavoriteToggle: ((Beach) -> Unit)? = null 
 ) {
     if (beach == null) {
-        // Manejo si la playa es nula (debería ser capturado antes, pero es una buena salvaguarda)
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text("Error: No se pudo cargar la información de la playa.")
-            // Puedes añadir un Button para onBackClick si quieres
             // SideEffect para volver atrás automáticamente si no se carga.
             LaunchedEffect(Unit) {
                 onBackClick()
@@ -62,8 +70,24 @@ fun BeachDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Implementar añadir/quitar de favoritos */ }) {
-                        Icon(Icons.Filled.FavoriteBorder, contentDescription = "Favorito")
+                    // Mantener el estado local para una respuesta inmediata en la UI
+                    var isFavorite by remember { mutableStateOf(beach.favourite) }
+                    
+                    IconButton(onClick = { 
+                        // Cambiar el estado local para actualización inmediata
+                        isFavorite = !isFavorite
+                        
+                        // Crear una copia de la playa con el estado de favorito actualizado
+                        val updatedBeach = beach.copy(favourite = isFavorite)
+                        
+                        // Llamar al callback para actualizar la base de datos
+                        onFavoriteToggle?.invoke(updatedBeach)
+                    }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
+                            tint = if (isFavorite) Color(0xFFE91E63) else LocalContentColor.current
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -94,12 +118,12 @@ fun BeachDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = (-30).dp) // Superponer ligeramente sobre la imagen
+                    .offset(y = (-30).dp) 
                     .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
-                    .background(MaterialTheme.colorScheme.surface) // Fondo del contenido
+                    .background(MaterialTheme.colorScheme.surface) 
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
-                // Nombre y Ubicación (repetido para visibilidad, podrías quitarlo de TopAppBar)
+                // Nombre y Ubicación 
                 Text(
                     text = beach.name,
                     style = MaterialTheme.typography.headlineLarge,
@@ -140,11 +164,11 @@ fun BeachDetailScreen(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(getOccupationColor(beach.ocupation)) // Función auxiliar para el color
+                                    .background(getOccupationColor(beach.ocupation)) 
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "${beach.ocupation.name.lowercase().replaceFirstChar { it.uppercase() }} ocupación", // Asumiendo que Ocupation tiene un `description`
+                                text = "${beach.ocupation.name.lowercase().replaceFirstChar { it.uppercase() }} ocupación", 
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -165,7 +189,7 @@ fun BeachDetailScreen(
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.wave_image), // Necesitarás este SVG en tus drawables
+                                    painter = painterResource(id = R.drawable.wave_image), 
                                     contentDescription = "Mar",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
@@ -194,7 +218,7 @@ fun BeachDetailScreen(
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.wind_image), // Necesitarás este SVG en tus drawables
+                                    painter = painterResource(id = R.drawable.wind_image), 
                                     contentDescription = "Viento",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
@@ -208,7 +232,7 @@ fun BeachDetailScreen(
                             }
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "${beach.windSpeed} km/h", // Asumiendo `windSpeed` en WeatherCondition
+                                text = "${beach.windSpeed} km/h", 
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -250,19 +274,18 @@ fun BeachDetailScreen(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-                        // Usar un LazyColumn o Column con forEach para la lista de facilidades
                         Column {
                             beach.facilities.forEach { facility ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        Icons.Filled.Check, // O un ícono más adecuado como Bullet
+                                        Icons.Filled.Check, 
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        text = facility.toString(), // Cada string de la lista de facilidades
+                                        text = facility.toString(),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
@@ -270,6 +293,39 @@ fun BeachDetailScreen(
                             }
                         }
                     }
+                }
+                
+                Spacer(Modifier.height(16.dp))
+                
+                // Botón para abrir Google Maps
+                val context = LocalContext.current
+                Button(
+                    onClick = {
+                        // Crear una URI para Google Maps con la ubicación de la playa
+                        val gmmIntentUri = Uri.parse("geo:${beach.latitude},${beach.longitude}?q=${beach.latitude},${beach.longitude}(${Uri.encode(beach.name)})")
+                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                        mapIntent.setPackage("com.google.android.apps.maps")
+                        
+                        // Verificar si Google Maps está instalado
+                        if (mapIntent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(mapIntent)
+                        } else {
+                            // Si Google Maps no está instalado, abrir en el navegador
+                            val browserUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${beach.latitude},${beach.longitude}")
+                            val browserIntent = Intent(Intent.ACTION_VIEW, browserUri)
+                            context.startActivity(browserIntent)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        Icons.Filled.Map,
+                        contentDescription = "Ver en Google Maps",
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ver en Google Maps")
                 }
             }
         }
